@@ -9,7 +9,7 @@
         "sanitization"
     ],
     "description": "Various helpers for working with strings",
-    "homepage": "https://github.com/Simbiat/StringHelper",
+    "homepage": "https://github.com/Simbiat/StringHelpers",
     "license": "AGPL-3.0-or-later",
     "authors": [
         {
@@ -30,11 +30,11 @@
     },
     "autoload": {
         "psr-4": {
-            "Simbiat\\StringHelper\\": ""
+            "Simbiat\\StringHelpers\\": ""
         }
     },
     "support": {
-        "issues": "https://github.com/Simbiat/StringHelper/issues",
-        "source": "https://github.com/Simbiat/StringHelper"
+        "issues": "https://github.com/Simbiat/StringHelpers/issues",
+        "source": "https://github.com/Simbiat/StringHelpers"
     }
 }

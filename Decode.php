@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Simbiat\StringHelpers;
 
@@ -8,7 +9,7 @@ namespace Simbiat\StringHelpers;
  */
 class Decode
 {
-    
+
     /**
      * Decode string encoded with base64url encoding
      * @param string $string
@@ -17,9 +18,9 @@ class Decode
      */
     public static function base64url(string $string): string
     {
-        #Replace `-` with `+` and `_` with `/`
+        // Replace `-` with `+` and `_` with `/`
         $string = strtr($string, '-_', '+/');
-        #Decode Base64 string and return the original data
+        // Decode Base64 string and return the original data
         return \base64_decode($string, true);
     }
 }

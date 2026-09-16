@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Simbiat\StringHelpers;
 
@@ -8,7 +9,7 @@ namespace Simbiat\StringHelpers;
  */
 class Encode
 {
-    
+
     /**
      * Encode string using base64url encoding
      * @param string $string
@@ -18,9 +19,9 @@ class Encode
     public static function base64url(string $string): string
     {
         $string = \base64_encode($string);
-        #Replace `+` with `-` and `/` with `_`
+        // Replace `+` with `-` and `/` with `_`
         $string = strtr($string, '+/', '-_');
-        #Remove padding character from and return
+        // Remove padding character from and return
         return mb_rtrim($string, '=', 'UTF-8');
     }
 }

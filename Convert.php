@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Simbiat\StringHelpers;
 
@@ -11,13 +12,13 @@ class Convert
     private static string $url_unsafe = '\+\*\'\(\);/\?:@=&"<>#%{}\|\\\\\^~\[]`';
     private static array $romanizations = [];
     public static ?string $map = null;
-    
+
     private static array $safe_for_files = [
-        #Remove control characters and whitespaces except regular space
+        // Remove control characters and whitespaces except regular space
         '/[[:cntrl:]]/iu' => '',
-        #Replace whitespace with regular space (hex 20)
+        // Replace whitespace with regular space (hex 20)
         '/[\r\n\t\f\v\0\x{00A0}\x{2002}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]/iu' => ' ',
-        #Replace characters with fullwidth alternatives
+        // Replace characters with fullwidth alternatives
         '/</iu' => '＜',
         '/>/iu' => '＞',
         '/:/iu' => '：',
@@ -27,7 +28,7 @@ class Convert
         '/\|/iu' => '｜',
         '/\?/iu' => '？',
         '/\*/iu' => '＊',
-        #Replace Windows specific reserved words while retaining the case
+        // Replace Windows specific reserved words while retaining the case
         '/^(CON)(\..*)?$/u' => 'ＣＯＮ$2',
         '/^(con)(\..*)?$/u' => 'ｃｏｎ$2',
         '/^(COn)(\..*)?$/u' => 'ＣＯｎ$2',
@@ -70,7 +71,7 @@ class Convert
         '/^(Lpt)(\d)(\..*)?$/u' => 'Ｌｐｔ$2$3',
         '/^(lPT)(\d)(\..*)?$/u' => 'ｌＰＴ$2$3',
         '/^(lpT)(\d)(\..*)?$/u' => 'ｌｐＴ$2$3',
-        #OSDATA is technically not prohibited by Windows, but creating a file or folder with such name in a certain folder can easily break it
+        // OSDATA is technically not prohibited by Windows, but creating a file or folder with such name in a certain folder can easily break it
         '/^osdata$/u' => 'ｏｓｄａｔａ',
         '/^Osdata$/u' => 'Ｏｓｄａｔａ',
         '/^oSdata$/u' => 'ｏＳｄａｔａ',
@@ -135,9 +136,9 @@ class Convert
         '/^OsDATA$/u' => 'ＯｓＤＡＴＡ',
         '/^oSDATA$/u' => 'ｏＳＤＡＴＡ',
         '/^OSDATA$/u' => 'ＯＳＤＡＴＡ',
-    
+
     ];
-    
+
     /** Some more characters that you might want to replace with fullwidth alternatives, depending on how you use the files
      * @var array|string[]
      */
@@ -167,7 +168,7 @@ class Convert
         '/”/iu' => '＂',
         '/“/iu' => '＂',
     ];
-    
+
     /**
      * Function transliterates lots of characters and makes a safe and pretty URL.
      *
@@ -181,9 +182,9 @@ class Convert
     public static function prettyURL(string $string, string $whitespace = '-', bool $url_safe = true): string
     {
         $new_string = self::romanize($string);
-        #Repalce whitespace
+        // Repalce whitespace
         $new_string = \preg_replace('/\s+/', $whitespace, $new_string);
-        #Remove any other "forbidden" characters
+        // Remove any other "forbidden" characters
         if ($url_safe) {
             $new_string = \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string);
         } else {
@@ -191,7 +192,7 @@ class Convert
         }
         return $new_string;
     }
-    
+
     /**
      * Replace restricted characters or combinations
      * @param string $string   String to sanitize
@@ -202,15 +203,15 @@ class Convert
      */
     public static function safeFileName(string $string, bool $extended = true, bool $remove = false): string
     {
-        #Replace special characters
+        // Replace special characters
         $string = \preg_replace(\array_keys(self::$safe_for_files), ($remove ? '' : self::$safe_for_files), $string);
         if ($extended) {
             $string = \preg_replace(\array_keys(self::$safe_for_files_ext), ($remove ? '' : self::$safe_for_files_ext), $string);
         }
-        #Remove spaces and dots from the right (spaces on the left are possible
+        // Remove spaces and dots from the right (spaces on the left are possible
         return mb_rtrim(mb_rtrim(mb_rtrim($string, null, 'UTF-8'), '.', 'UTF-8'), null, 'UTF-8');
     }
-    
+
     /**
      * Apply romanization logic to a string
      * @throws \JsonException
@@ -218,12 +219,12 @@ class Convert
     public static function romanize(string $string): string
     {
         self::ingestMap();
-        #First, we apply built-in transliteration
+        // First, we apply built-in transliteration
         $replacement = \transliterator_transliterate('Any-Latin; Latin-ASCII;', $string, 0, -1);
-        #Then we apply transliterations from the map
+        // Then we apply transliterations from the map
         return \preg_replace(\array_keys(self::$romanizations), self::$romanizations, $replacement);
     }
-    
+
     /**
      * Helper to ingest and "cache" the map
      *
@@ -232,12 +233,12 @@ class Convert
      */
     private static function ingestMap(): void
     {
-        #If no replacement list is provided, load the default one, but only if it has not been loaded already
+        // If no replacement list is provided, load the default one, but only if it has not been loaded already
         if (\count(self::$romanizations) === 0) {
             $map = self::$map ?? (__DIR__.'/map.json');
             $replacements = \array_merge(...\array_values(\json_decode(\file_get_contents($map), true, 512, \JSON_THROW_ON_ERROR)));
             $keys = \array_keys($replacements);
-            #Wrap the keys in regex delimiters with the Unicode flag
+            // Wrap the keys in regex delimiters with the Unicode flag
             $keys = \array_map(static function ($item) {
                 return '/'.$item.'/u';
             }, $keys);

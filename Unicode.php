@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Simbiat\StringHelpers;
 
@@ -13,7 +14,7 @@ class Unicode
      * @var array
      */
     private(set) static array $unicode_blocks = [];
-    
+
     /**
      * List of character direction constants mapped to readable names
      * @var array
@@ -44,7 +45,7 @@ class Unicode
         'CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE' => \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
         'CHAR_DIRECTION_CHAR_DIRECTION_COUNT' => \IntlChar::CHAR_DIRECTION_CHAR_DIRECTION_COUNT,
     ];
-    
+
     /**
      * List of character type constants mapped to readable names
      * @var array
@@ -83,7 +84,7 @@ class Unicode
         'CHAR_CATEGORY_FINAL_PUNCTUATION' => \IntlChar::CHAR_CATEGORY_FINAL_PUNCTUATION,
         'CHAR_CATEGORY_CHAR_CATEGORY_COUNT' => \IntlChar::CHAR_CATEGORY_CHAR_CATEGORY_COUNT,
     ];
-    
+
     /**
      * Get all Unicode characters in an array
      * @return array
@@ -92,20 +93,20 @@ class Unicode
     {
         $characters = [];
         for ($codepoint = 0; $codepoint <= 0x10FFFF; $codepoint++) {
-            #Skip surrogates, since JSON will fail on them
+            // Skip surrogates, since JSON will fail on them
             if ($codepoint >= 0xD800 && $codepoint <= 0xDFFF) {
                 continue;
             }
-            #Convert code point to UTF-8 character
+            // Convert code point to UTF-8 character
             $char = mb_chr($codepoint, 'UTF-8');
-            #Use character as a key, empty string as value
+            // Use character as a key, empty string as value
             if (\is_string($char)) {
                 $characters[] = $char;
             }
         }
         return $characters;
     }
-    
+
     /**
      * Generates 2 files: one with a list of all transliterations, one with all characters that are not transliterated by the library. This is mostly for testing and maintenance.
      * @return void
@@ -116,7 +117,7 @@ class Unicode
         $characters = self::getAllUnicode();
         $not_transliterated = [];
         $transliterated = [];
-        #Since transliteration is done per character, it can take quite awhile to finish processing
+        // Since transliteration is done per character, it can take quite awhile to finish processing
         \ini_set('max_execution_time', '0');
         foreach ($characters as $character) {
             $character = (string)$character;
@@ -135,7 +136,7 @@ class Unicode
         \file_put_contents(__DIR__.'/not_transliterated.json', \json_encode($not_transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
         \file_put_contents(__DIR__.'/transliterated.json', \json_encode($transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
     }
-    
+
     /**
      * Certain types of characters may need to be written as hex representation to avoid bad rendering of the JSONs in some editors
      * @param int|string $codepoint
@@ -152,7 +153,7 @@ class Unicode
             ], true) ||
             self::isRTL($codepoint) || self::isNonSpacing($codepoint) || self::isIsolate($codepoint) || self::isPop($codepoint);
     }
-    
+
     /**
      * Wrapper for `\IntlChar::charDirection` to return a direction as a string, instead of integer
      * @param int|string $codepoint
@@ -163,7 +164,7 @@ class Unicode
     {
         return \array_search(\IntlChar::charDirection($codepoint), self::DIRECTIONS, true);
     }
-    
+
     /**
      * Wrapper for `\IntlChar::charType` to return a type as a string, instead of integer
      * @param int|string $codepoint
@@ -174,7 +175,7 @@ class Unicode
     {
         return \array_search(\IntlChar::charType($codepoint), self::TYPES, true);
     }
-    
+
     /**
      * Checks if provided codepoint or character is a Right-To-Left character
      * @param int|string $codepoint
@@ -183,9 +184,9 @@ class Unicode
      */
     public static function isRTL(int|string $codepoint): bool
     {
-        #Get the direction of the character
+        // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
-        #Check if the direction is RTL
+        // Check if the direction is RTL
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT,
             \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT_ARABIC,
@@ -195,7 +196,7 @@ class Unicode
             \IntlChar::CHAR_DIRECTION_ARABIC_NUMBER
         ], true);
     }
-    
+
     /**
      * Checks if provided codepoint or character is a non-spacing mark
      * @param int|string $codepoint
@@ -204,12 +205,12 @@ class Unicode
      */
     public static function isNonSpacing(int|string $codepoint): bool
     {
-        #Get the direction of the character
+        // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
-        #Check if the direction is RTL
+        // Check if the direction is RTL
         return $direction === \IntlChar::CHAR_DIRECTION_DIR_NON_SPACING_MARK;
     }
-    
+
     /**
      * Checks if provided codepoint or character is a direction "isolate"
      * @param int|string $codepoint
@@ -218,9 +219,9 @@ class Unicode
      */
     public static function isIsolate(int|string $codepoint): bool
     {
-        #Get the direction of the character
+        // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
-        #Check if the direction is RTL
+        // Check if the direction is RTL
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_FIRST_STRONG_ISOLATE,
             \IntlChar::CHAR_DIRECTION_LEFT_TO_RIGHT_ISOLATE,
@@ -228,7 +229,7 @@ class Unicode
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE
         ], true);
     }
-    
+
     /**
      * Checks if provided codepoint or character is a direction mark
      * @param int|string $codepoint
@@ -237,15 +238,15 @@ class Unicode
      */
     public static function isPop(int|string $codepoint): bool
     {
-        #Get the direction of the character
+        // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
-        #Check if the direction is RTL
+        // Check if the direction is RTL
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_FORMAT,
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE
         ], true);
     }
-    
+
     /**
      * Get the latest list of blocks from Unicode.org in an array
      * @return array
@@ -263,7 +264,7 @@ class Unicode
         self::$unicode_blocks = $blocks;
         return $blocks;
     }
-    
+
     /**
      * Get the block name from codepoint
      * @param int $codepoint

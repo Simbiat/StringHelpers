@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Simbiat\StringHelpers;
 
@@ -8,7 +9,7 @@ namespace Simbiat\StringHelpers;
  */
 class Sanitize
 {
-    
+
     /**
      * Validate if a string is valid for use as a database identifier (or part of it), such as database name, table name, index name, etc.
      *
@@ -22,7 +23,7 @@ class Sanitize
     {
         return \preg_match('/^[\w\-]{'.($allow_empty ? 0 : 1).','.$max_length.'}$/u', $string) === 1;
     }
-    
+
     /**
      * Check if a string is empty or consists of only whitespace and/or control characters
      * @param string $string

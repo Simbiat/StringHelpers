@@ -98,7 +98,7 @@ class Unicode
                 continue;
             }
             // Convert code point to UTF-8 character
-            $char = mb_chr($codepoint, 'UTF-8');
+            $char = \mb_chr($codepoint, 'UTF-8');
             // Use character as a key, empty string as value
             if (\is_string($char)) {
                 $characters[] = $char;
@@ -120,7 +120,7 @@ class Unicode
         // Since transliteration is done per character, it can take quite awhile to finish processing
         \ini_set('max_execution_time', '0');
         foreach ($characters as $character) {
-            $character = (string)$character;
+            $character = (string) $character;
             $codepoint = \IntlChar::ord($character);
             $block_name = self::getBlockNameForCodepoint($codepoint) ?? 'Unknown';
             $char_name = \IntlChar::charName($codepoint);

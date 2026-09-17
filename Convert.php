@@ -209,7 +209,7 @@ class Convert
             $string = \preg_replace(\array_keys(self::$safe_for_files_ext), ($remove ? '' : self::$safe_for_files_ext), $string);
         }
         // Remove spaces and dots from the right (spaces on the left are possible
-        return mb_rtrim(mb_rtrim(mb_rtrim($string, null, 'UTF-8'), '.', 'UTF-8'), null, 'UTF-8');
+        return \mb_rtrim(\mb_rtrim(\mb_rtrim($string, null, 'UTF-8'), '.', 'UTF-8'), null, 'UTF-8');
     }
 
     /**

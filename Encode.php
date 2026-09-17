@@ -20,8 +20,8 @@ class Encode
     {
         $string = \base64_encode($string);
         // Replace `+` with `-` and `/` with `_`
-        $string = strtr($string, '+/', '-_');
+        $string = \strtr($string, '+/', '-_');
         // Remove padding character from and return
-        return mb_rtrim($string, '=', 'UTF-8');
+        return \mb_rtrim($string, '=', 'UTF-8');
     }
 }

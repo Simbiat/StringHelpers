@@ -19,7 +19,7 @@ class Decode
     public static function base64url(string $string): string
     {
         // Replace `-` with `+` and `_` with `/`
-        $string = strtr($string, '-_', '+/');
+        $string = \strtr($string, '-_', '+/');
         // Decode Base64 string and return the original data
         return \base64_decode($string, true);
     }

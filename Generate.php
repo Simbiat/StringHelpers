@@ -19,7 +19,7 @@ class Generate
     public static function caseVariations(string $string): array
     {
         $variations = [];
-        $length = mb_strlen($string, 'UTF-8');
+        $length = \mb_strlen($string, 'UTF-8');
         // Calculate total number of combinations (2^n)
         $total_variations = 2 ** $length;
         // Iterate through each combination
@@ -28,12 +28,12 @@ class Generate
             // Check each bit position
             for ($j_iteration = 0; $j_iteration < $length; $j_iteration++) {
                 // Get the multibyte character from string
-                $character = mb_substr($string, $j_iteration, 1, 'UTF-8');
+                $character = \mb_substr($string, $j_iteration, 1, 'UTF-8');
                 // If the j-th bit of i is set, convert the j-th character to uppercase (do not fully understand this, but it works)
                 if (($iteration >> $j_iteration) & 1) {
-                    $variation .= mb_strtoupper($character, 'UTF-8');
+                    $variation .= \mb_strtoupper($character, 'UTF-8');
                 } else {
-                    $variation .= mb_strtolower($character, 'UTF-8');
+                    $variation .= \mb_strtolower($character, 'UTF-8');
                 }
             }
             // Add the generated combination to the array

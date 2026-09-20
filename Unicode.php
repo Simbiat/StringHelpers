@@ -11,12 +11,14 @@ class Unicode
 {
     /**
      * Cached Unicode blocks
+     *
      * @var array
      */
     private(set) static array $unicode_blocks = [];
 
     /**
      * List of character direction constants mapped to readable names
+     *
      * @var array
      */
     public const array DIRECTIONS = [
@@ -48,6 +50,7 @@ class Unicode
 
     /**
      * List of character type constants mapped to readable names
+     *
      * @var array
      */
     public const array TYPES = [
@@ -87,6 +90,7 @@ class Unicode
 
     /**
      * Get all Unicode characters in an array
+     *
      * @return array
      */
     public static function getAllUnicode(): array
@@ -94,7 +98,10 @@ class Unicode
         $characters = [];
         for ($codepoint = 0; $codepoint <= 0x10FFFF; $codepoint++) {
             // Skip surrogates, since JSON will fail on them
-            if ($codepoint >= 0xD800 && $codepoint <= 0xDFFF) {
+            if (
+                $codepoint >= 0xD800
+                && $codepoint <= 0xDFFF
+            ) {
                 continue;
             }
             // Convert code point to UTF-8 character
@@ -104,12 +111,15 @@ class Unicode
                 $characters[] = $char;
             }
         }
+
         return $characters;
     }
 
     /**
      * Generates 2 files: one with a list of all transliterations, one with all characters that are not transliterated by the library. This is mostly for testing and maintenance.
+     *
      * @return void
+     *
      * @throws \JsonException
      */
     public static function whatIsTransliterated(): void
@@ -127,7 +137,10 @@ class Unicode
             $hex = \mb_strtoupper(\dechex($codepoint), 'UTF-8');
             $for_regex = '\x{'.$hex.'}';
             $replacement = Convert::romanize($character);
-            if ($character === $replacement && \preg_match('/^[a-zA-Z0-9]*$/', $replacement) !== 1) {
+            if (
+                $character === $replacement
+                && \preg_match('/^[a-zA-Z0-9]*$/', $replacement) !== 1
+            ) {
                 $not_transliterated[$block_name][(self::hexRecommended($character) ? $for_regex : $character)] = $char_name;
             } else {
                 $transliterated[$block_name][(self::hexRecommended($character) ? $for_regex : $character)] = $char_name.' (`'.$replacement.'`)';
@@ -139,6 +152,7 @@ class Unicode
 
     /**
      * Certain types of characters may need to be written as hex representation to avoid bad rendering of the JSONs in some editors
+     *
      * @param int|string $codepoint
      *
      * @return bool
@@ -156,6 +170,7 @@ class Unicode
 
     /**
      * Wrapper for `\IntlChar::charDirection` to return a direction as a string, instead of integer
+     *
      * @param int|string $codepoint
      *
      * @return string
@@ -167,6 +182,7 @@ class Unicode
 
     /**
      * Wrapper for `\IntlChar::charType` to return a type as a string, instead of integer
+     *
      * @param int|string $codepoint
      *
      * @return string
@@ -178,6 +194,7 @@ class Unicode
 
     /**
      * Checks if provided codepoint or character is a Right-To-Left character
+     *
      * @param int|string $codepoint
      *
      * @return bool
@@ -186,6 +203,7 @@ class Unicode
     {
         // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
+
         // Check if the direction is RTL
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT,
@@ -199,6 +217,7 @@ class Unicode
 
     /**
      * Checks if provided codepoint or character is a non-spacing mark
+     *
      * @param int|string $codepoint
      *
      * @return bool
@@ -207,12 +226,14 @@ class Unicode
     {
         // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
+
         // Check if the direction is RTL
         return $direction === \IntlChar::CHAR_DIRECTION_DIR_NON_SPACING_MARK;
     }
 
     /**
      * Checks if provided codepoint or character is a direction "isolate"
+     *
      * @param int|string $codepoint
      *
      * @return bool
@@ -221,6 +242,7 @@ class Unicode
     {
         // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
+
         // Check if the direction is RTL
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_FIRST_STRONG_ISOLATE,
@@ -232,6 +254,7 @@ class Unicode
 
     /**
      * Checks if provided codepoint or character is a direction mark
+     *
      * @param int|string $codepoint
      *
      * @return bool
@@ -240,6 +263,7 @@ class Unicode
     {
         // Get the direction of the character
         $direction = \IntlChar::charDirection($codepoint);
+
         // Check if the direction is RTL
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_FORMAT,
@@ -249,6 +273,7 @@ class Unicode
 
     /**
      * Get the latest list of blocks from Unicode.org in an array
+     *
      * @return array
      */
     public static function getUnicodeBlocks(): array
@@ -262,11 +287,13 @@ class Unicode
             }
         }
         self::$unicode_blocks = $blocks;
+
         return $blocks;
     }
 
     /**
      * Get the block name from codepoint
+     *
      * @param int $codepoint
      *
      * @return string|null
@@ -279,10 +306,14 @@ class Unicode
             $blocks = self::$unicode_blocks;
         }
         foreach ($blocks as $block) {
-            if ($codepoint >= $block['start'] && $codepoint <= $block['end']) {
+            if (
+                $codepoint >= $block['start']
+                && $codepoint <= $block['end']
+            ) {
                 return $block['name'];
             }
         }
+
         return null;
     }
 }

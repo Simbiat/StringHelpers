@@ -12,6 +12,7 @@ class Generate
 
     /**
      * Generate all possible variations of a string where each character changes between lower and upper case (like `abc`, `Abc`, `aBc`, etc.)
+     *
      * @param string $string
      *
      * @return array
@@ -39,6 +40,7 @@ class Generate
             // Add the generated combination to the array
             $variations[] = $variation;
         }
+
         return \array_unique($variations);
     }
 }

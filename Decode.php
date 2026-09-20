@@ -12,6 +12,7 @@ class Decode
 
     /**
      * Decode string encoded with base64url encoding
+     *
      * @param string $string
      *
      * @return string
@@ -20,6 +21,7 @@ class Decode
     {
         // Replace `-` with `+` and `_` with `/`
         $string = \strtr($string, '-_', '+/');
+
         // Decode Base64 string and return the original data
         return \base64_decode($string, true);
     }

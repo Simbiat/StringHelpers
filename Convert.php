@@ -140,6 +140,7 @@ class Convert
     ];
 
     /** Some more characters that you might want to replace with fullwidth alternatives, depending on how you use the files
+     *
      * @var array|string[]
      */
     private static array $safe_for_files_ext = [
@@ -177,6 +178,7 @@ class Convert
      * @param bool   $url_safe   If set to `true`, some characters will be removed as well, because they can "break" the URL. Some of them are valid for a URI, but they are not good for SEO links.
      *
      * @return string
+     *
      * @throws \JsonException
      */
     public static function prettyURL(string $string, string $whitespace = '-', bool $url_safe = true): string
@@ -190,11 +192,13 @@ class Convert
         } else {
             $new_string = \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
         }
+
         return $new_string;
     }
 
     /**
      * Replace restricted characters or combinations
+     *
      * @param string $string   String to sanitize
      * @param bool   $extended If `true` - replace some special characters (common for programming languages) with fullwidth alternatives, so that the text will look similar but will not work as actual code
      * @param bool   $remove   If `true` - replace matches with empty string, instead of safe alternatives
@@ -208,12 +212,14 @@ class Convert
         if ($extended) {
             $string = \preg_replace(\array_keys(self::$safe_for_files_ext), ($remove ? '' : self::$safe_for_files_ext), $string);
         }
+
         // Remove spaces and dots from the right (spaces on the left are possible
         return \mb_rtrim(\mb_rtrim(\mb_rtrim($string, null, 'UTF-8'), '.', 'UTF-8'), null, 'UTF-8');
     }
 
     /**
      * Apply romanization logic to a string
+     *
      * @throws \JsonException
      */
     public static function romanize(string $string): string
@@ -221,6 +227,7 @@ class Convert
         self::ingestMap();
         // First, we apply built-in transliteration
         $replacement = \transliterator_transliterate('Any-Latin; Latin-ASCII;', $string, 0, -1);
+
         // Then we apply transliterations from the map
         return \preg_replace(\array_keys(self::$romanizations), self::$romanizations, $replacement);
     }
@@ -229,13 +236,14 @@ class Convert
      * Helper to ingest and "cache" the map
      *
      * @return void
+     *
      * @throws \JsonException
      */
     private static function ingestMap(): void
     {
         // If no replacement list is provided, load the default one, but only if it has not been loaded already
         if (\count(self::$romanizations) === 0) {
-            $map = self::$map ?? (__DIR__.'/map.json');
+            $map = self::$map ?? __DIR__.'/map.json';
             $replacements = \array_merge(...\array_values(\json_decode(\file_get_contents($map), true, 512, \JSON_THROW_ON_ERROR)));
             $keys = \array_keys($replacements);
             // Wrap the keys in regex delimiters with the Unicode flag

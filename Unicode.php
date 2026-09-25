@@ -7,7 +7,7 @@ namespace Simbiat\StringHelpers;
 /**
  * Function to work with Unicode
  */
-class Unicode
+final class Unicode
 {
     /**
      * Cached Unicode blocks
@@ -298,11 +298,7 @@ class Unicode
      */
     public static function getBlockNameForCodepoint(int $codepoint): ?string
     {
-        if (\count(self::$unicode_blocks) === 0) {
-            $blocks = self::getUnicodeBlocks();
-        } else {
-            $blocks = self::$unicode_blocks;
-        }
+        $blocks = \count(self::$unicode_blocks) === 0 ? self::getUnicodeBlocks() : self::$unicode_blocks;
         foreach ($blocks as $block) {
             if (
                 $codepoint >= $block['start']

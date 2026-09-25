@@ -7,7 +7,7 @@ namespace Simbiat\StringHelpers;
 /**
  * Functions to generate strings.
  */
-class Generate
+final class Generate
 {
 
     /**

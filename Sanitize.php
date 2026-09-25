@@ -7,7 +7,7 @@ namespace Simbiat\StringHelpers;
 /**
  * Functions to decode strings.
  */
-class Sanitize
+final class Sanitize
 {
 
     /**

@@ -7,7 +7,7 @@ namespace Simbiat\StringHelpers;
 /**
  * Functions to encode strings.
  */
-class Encode
+final class Encode
 {
 
     /**

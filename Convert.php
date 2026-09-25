@@ -7,7 +7,7 @@ namespace Simbiat\StringHelpers;
 /**
  * Functions to convert strings
  */
-class Convert
+final class Convert
 {
     private static string $url_unsafe = '\+\*\'\(\);/\?:@=&"<>#%{}\|\\\\\^~\[]`';
     private static array $romanizations = [];
@@ -184,11 +184,7 @@ class Convert
         // Repalce whitespace
         $new_string = \preg_replace('/\s+/', $whitespace, $new_string);
         // Remove any other "forbidden" characters
-        if ($url_safe) {
-            $new_string = \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string);
-        } else {
-            $new_string = \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
-        }
+        $new_string = $url_safe ? \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string) : \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
 
         return $new_string;
     }

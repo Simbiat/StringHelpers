@@ -9,7 +9,6 @@ namespace Simbiat\StringHelpers;
  */
 final class Decode
 {
-
     /**
      * Decode string encoded with base64url encoding
      *

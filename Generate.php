@@ -9,7 +9,6 @@ namespace Simbiat\StringHelpers;
  */
 final class Generate
 {
-
     /**
      * Generate all possible variations of a string where each character changes between lower and upper case (like `abc`, `Abc`, `aBc`, etc.)
      *

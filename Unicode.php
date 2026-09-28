@@ -10,15 +10,7 @@ namespace Simbiat\StringHelpers;
 final class Unicode
 {
     /**
-     * Cached Unicode blocks
-     *
-     * @var array
-     */
-    private(set) static array $unicode_blocks = [];
-
-    /**
      * List of character direction constants mapped to readable names
-     *
      */
     public const array DIRECTIONS = [
         'CHAR_DIRECTION_ARABIC_NUMBER' => \IntlChar::CHAR_DIRECTION_ARABIC_NUMBER,
@@ -49,7 +41,6 @@ final class Unicode
 
     /**
      * List of character type constants mapped to readable names
-     *
      */
     public const array TYPES = [
         'CHAR_CATEGORY_CHAR_CATEGORY_COUNT' => \IntlChar::CHAR_CATEGORY_CHAR_CATEGORY_COUNT,
@@ -85,6 +76,13 @@ final class Unicode
         'CHAR_CATEGORY_UNASSIGNED' => \IntlChar::CHAR_CATEGORY_UNASSIGNED,
         'CHAR_CATEGORY_UPPERCASE_LETTER' => \IntlChar::CHAR_CATEGORY_UPPERCASE_LETTER,
     ];
+
+    /**
+     * Cached Unicode blocks
+     *
+     * @var array
+     */
+    private(set) static array $unicode_blocks = [];
 
     /**
      * Get all Unicode characters in an array
@@ -146,24 +144,6 @@ final class Unicode
         }
         \file_put_contents(__DIR__.'/not_transliterated.json', \json_encode($not_transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
         \file_put_contents(__DIR__.'/transliterated.json', \json_encode($transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
-    }
-
-    /**
-     * Certain types of characters may need to be written as hex representation to avoid bad rendering of the JSONs in some editors
-     *
-     * @param int|string $codepoint
-     *
-     * @return bool
-     */
-    private static function hexRecommended(int|string $codepoint): bool
-    {
-        return \in_array(\IntlChar::charType($codepoint), [
-                \IntlChar::CHAR_CATEGORY_CONTROL_CHAR,
-                \IntlChar::CHAR_CATEGORY_OTHER_LETTER,
-                \IntlChar::CHAR_CATEGORY_COMBINING_SPACING_MARK,
-                \IntlChar::CHAR_CATEGORY_NON_SPACING_MARK,
-            ], true) ||
-            self::isRTL($codepoint) || self::isNonSpacing($codepoint) || self::isIsolate($codepoint) || self::isPop($codepoint);
     }
 
     /**
@@ -298,7 +278,9 @@ final class Unicode
      */
     public static function getBlockNameForCodepoint(int $codepoint): ?string
     {
-        $blocks = \count(self::$unicode_blocks) === 0 ? self::getUnicodeBlocks() : self::$unicode_blocks;
+        $blocks = \count(self::$unicode_blocks) === 0
+            ? self::getUnicodeBlocks()
+            : self::$unicode_blocks;
         foreach ($blocks as $block) {
             if (
                 $codepoint >= $block['start']
@@ -309,5 +291,31 @@ final class Unicode
         }
 
         return null;
+    }
+
+    /**
+     * Certain types of characters may need to be written as hex representation to avoid bad rendering of the JSONs in some editors
+     *
+     * @param int|string $codepoint
+     *
+     * @return bool
+     */
+    private static function hexRecommended(int|string $codepoint): bool
+    {
+        return
+            \in_array(
+                \IntlChar::charType($codepoint),
+                [
+                    \IntlChar::CHAR_CATEGORY_CONTROL_CHAR,
+                    \IntlChar::CHAR_CATEGORY_OTHER_LETTER,
+                    \IntlChar::CHAR_CATEGORY_COMBINING_SPACING_MARK,
+                    \IntlChar::CHAR_CATEGORY_NON_SPACING_MARK,
+                ],
+                true,
+            )
+            || self::isRTL($codepoint)
+            || self::isNonSpacing($codepoint)
+            || self::isIsolate($codepoint)
+            || self::isPop($codepoint);
     }
 }

@@ -9,7 +9,6 @@ namespace Simbiat\StringHelpers;
  */
 final class Sanitize
 {
-
     /**
      * Validate if a string is valid for use as a database identifier (or part of it), such as database name, table name, index name, etc.
      *

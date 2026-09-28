@@ -9,9 +9,9 @@ namespace Simbiat\StringHelpers;
  */
 final class Convert
 {
+    public static ?string $map = null;
     private static string $url_unsafe = '\+\*\'\(\);/\?:@=&"<>#%{}\|\\\\\^~\[]`';
     private static array $romanizations = [];
-    public static ?string $map = null;
 
     private static array $safe_for_files = [
         '/"/iu' => '＂',
@@ -138,7 +138,7 @@ final class Convert
 
     /** Some more characters that you might want to replace with fullwidth alternatives, depending on how you use the files
      *
-     * @var array|string[]
+     * @var array<string, string>
      */
     private static array $safe_for_files_ext = [
         '/#/iu' => '＃',
@@ -184,7 +184,9 @@ final class Convert
         // Repalce whitespace
         $new_string = \preg_replace('/\s+/', $whitespace, $new_string);
         // Remove any other "forbidden" characters
-        $new_string = $url_safe ? \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string) : \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
+        $new_string = $url_safe
+            ? \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string)
+            : \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
 
         return $new_string;
     }
@@ -240,9 +242,7 @@ final class Convert
             $replacements = \array_merge(...\array_values(\json_decode(\file_get_contents($map), true, 512, \JSON_THROW_ON_ERROR)));
             $keys = \array_keys($replacements);
             // Wrap the keys in regex delimiters with the Unicode flag
-            $keys = \array_map(static function ($item) {
-                return '/'.$item.'/u';
-            }, $keys);
+            $keys = \array_map(static fn($item) => '/'.$item.'/u', $keys);
             self::$romanizations = \array_combine($keys, $replacements);
         }
     }

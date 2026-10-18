@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simbiat\StringHelpers;
 
 /**
- * Function to work with Unicode
+ * Function to work with Unicode.
  */
 final class Unicode
 {
     /**
-     * List of character direction constants mapped to readable names
+     * List of character direction constants mapped to readable names.
      */
     public const array DIRECTIONS = [
         'CHAR_DIRECTION_ARABIC_NUMBER' => \IntlChar::CHAR_DIRECTION_ARABIC_NUMBER,
@@ -40,7 +40,7 @@ final class Unicode
     ];
 
     /**
-     * List of character type constants mapped to readable names
+     * List of character type constants mapped to readable names.
      */
     public const array TYPES = [
         'CHAR_CATEGORY_CHAR_CATEGORY_COUNT' => \IntlChar::CHAR_CATEGORY_CHAR_CATEGORY_COUNT,
@@ -78,21 +78,21 @@ final class Unicode
     ];
 
     /**
-     * Cached Unicode blocks
+     * Cached Unicode blocks.
      *
      * @var array
      */
-    private(set) static array $unicode_blocks = [];
+    public private(set) static array $unicode_blocks = [];
 
     /**
-     * Get all Unicode characters in an array
+     * Get all Unicode characters in an array.
      *
      * @return array
      */
     public static function getAllUnicode(): array
     {
         $characters = [];
-        for ($codepoint = 0; $codepoint <= 0x10FFFF; $codepoint++) {
+        for ($codepoint = 0; $codepoint <= 0x10FFFF; ++$codepoint) {
             // Skip surrogates, since JSON will fail on them
             if (
                 $codepoint >= 0xD800
@@ -147,7 +147,7 @@ final class Unicode
     }
 
     /**
-     * Wrapper for `\IntlChar::charDirection` to return a direction as a string, instead of integer
+     * Wrapper for `\IntlChar::charDirection` to return a direction as a string, instead of integer.
      *
      * @param int|string $codepoint
      *
@@ -159,7 +159,7 @@ final class Unicode
     }
 
     /**
-     * Wrapper for `\IntlChar::charType` to return a type as a string, instead of integer
+     * Wrapper for `\IntlChar::charType` to return a type as a string, instead of integer.
      *
      * @param int|string $codepoint
      *
@@ -171,7 +171,7 @@ final class Unicode
     }
 
     /**
-     * Checks if provided codepoint or character is a Right-To-Left character
+     * Checks if provided codepoint or character is a Right-To-Left character.
      *
      * @param int|string $codepoint
      *
@@ -194,7 +194,7 @@ final class Unicode
     }
 
     /**
-     * Checks if provided codepoint or character is a non-spacing mark
+     * Checks if provided codepoint or character is a non-spacing mark.
      *
      * @param int|string $codepoint
      *
@@ -210,7 +210,7 @@ final class Unicode
     }
 
     /**
-     * Checks if provided codepoint or character is a direction "isolate"
+     * Checks if provided codepoint or character is a direction "isolate".
      *
      * @param int|string $codepoint
      *
@@ -231,7 +231,7 @@ final class Unicode
     }
 
     /**
-     * Checks if provided codepoint or character is a direction mark
+     * Checks if provided codepoint or character is a direction mark.
      *
      * @param int|string $codepoint
      *
@@ -250,7 +250,7 @@ final class Unicode
     }
 
     /**
-     * Get the latest list of blocks from Unicode.org in an array
+     * Get the latest list of blocks from Unicode.org in an array.
      *
      * @return array
      */
@@ -270,11 +270,11 @@ final class Unicode
     }
 
     /**
-     * Get the block name from codepoint
+     * Get the block name from codepoint.
      *
      * @param int $codepoint
      *
-     * @return string|null
+     * @return null|string
      */
     public static function getBlockNameForCodepoint(int $codepoint): ?string
     {
@@ -294,7 +294,7 @@ final class Unicode
     }
 
     /**
-     * Certain types of characters may need to be written as hex representation to avoid bad rendering of the JSONs in some editors
+     * Certain types of characters may need to be written as hex representation to avoid bad rendering of the JSONs in some editors.
      *
      * @param int|string $codepoint
      *

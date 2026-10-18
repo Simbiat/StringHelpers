@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Simbiat\StringHelpers;
 
 /**
- * Functions to convert strings
+ * Functions to convert strings.
  */
 final class Convert
 {
@@ -136,7 +136,7 @@ final class Convert
 
     ];
 
-    /** Some more characters that you might want to replace with fullwidth alternatives, depending on how you use the files
+    /** Some more characters that you might want to replace with fullwidth alternatives, depending on how you use the files.
      *
      * @var array<string, string>
      */
@@ -184,15 +184,13 @@ final class Convert
         // Repalce whitespace
         $new_string = \preg_replace('/\s+/', $whitespace, $new_string);
         // Remove any other "forbidden" characters
-        $new_string = $url_safe
+        return $url_safe
             ? \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string)
             : \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
-
-        return $new_string;
     }
 
     /**
-     * Replace restricted characters or combinations
+     * Replace restricted characters or combinations.
      *
      * @param string $string   String to sanitize
      * @param bool   $extended If `true` - replace some special characters (common for programming languages) with fullwidth alternatives, so that the text will look similar but will not work as actual code
@@ -213,7 +211,7 @@ final class Convert
     }
 
     /**
-     * Apply romanization logic to a string
+     * Apply romanization logic to a string.
      *
      * @throws \JsonException
      */
@@ -228,7 +226,7 @@ final class Convert
     }
 
     /**
-     * Helper to ingest and "cache" the map
+     * Helper to ingest and "cache" the map.
      *
      * @return void
      *

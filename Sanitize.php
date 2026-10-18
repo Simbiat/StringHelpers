@@ -24,7 +24,7 @@ final class Sanitize
     }
 
     /**
-     * Check if a string is empty or consists of only whitespace and/or control characters
+     * Check if a string is empty or consists of only whitespace and/or control characters.
      *
      * @param string $string
      *

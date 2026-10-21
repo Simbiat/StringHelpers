@@ -22,6 +22,6 @@ final class Decode
         $string = \strtr($string, '-_', '+/');
 
         // Decode Base64 string and return the original data
-        return \base64_decode($string, true);
+        return \base64_decode($string, strict: true);
     }
 }

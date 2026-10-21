@@ -100,6 +100,7 @@ final class Unicode
             ) {
                 continue;
             }
+
             // Convert code point to UTF-8 character
             $char = \mb_chr($codepoint, 'UTF-8');
             // Use character as a key, empty string as value
@@ -142,6 +143,7 @@ final class Unicode
                 $transliterated[$block_name][(self::hexRecommended($character) ? $for_regex : $character)] = $char_name.' (`'.$replacement.'`)';
             }
         }
+
         \file_put_contents(__DIR__.'/not_transliterated.json', \json_encode($not_transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
         \file_put_contents(__DIR__.'/transliterated.json', \json_encode($transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
     }
@@ -155,7 +157,7 @@ final class Unicode
      */
     public static function charDirection(int|string $codepoint): string
     {
-        return \array_search(\IntlChar::charDirection($codepoint), self::DIRECTIONS, true);
+        return \array_search(\IntlChar::charDirection($codepoint), self::DIRECTIONS, strict: true);
     }
 
     /**
@@ -167,7 +169,7 @@ final class Unicode
      */
     public static function charType(int|string $codepoint): string
     {
-        return \array_search(\IntlChar::charType($codepoint), self::TYPES, true);
+        return \array_search(\IntlChar::charType($codepoint), self::TYPES, strict: true);
     }
 
     /**
@@ -190,7 +192,7 @@ final class Unicode
             \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT_OVERRIDE,
             \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT_ISOLATE,
             \IntlChar::CHAR_DIRECTION_ARABIC_NUMBER,
-        ], true);
+        ], strict: true);
     }
 
     /**
@@ -227,7 +229,7 @@ final class Unicode
             \IntlChar::CHAR_DIRECTION_LEFT_TO_RIGHT_ISOLATE,
             \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT_ISOLATE,
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
-        ], true);
+        ], strict: true);
     }
 
     /**
@@ -246,7 +248,7 @@ final class Unicode
         return \in_array($direction, [
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_FORMAT,
             \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
-        ], true);
+        ], strict: true);
     }
 
     /**
@@ -260,10 +262,11 @@ final class Unicode
         $blocks = [];
         foreach (\explode("\n", $block_file) as $line) {
             if (\preg_match('/^([0-9A-F]+)\.\.([0-9A-F]+);\s(.+)$/', $line, $matches)) {
-                [$start, $end, $name] = [\hexdec($matches[1]), \hexdec($matches[2]), \mb_trim($matches[3], null, 'UTF-8')];
-                $blocks[] = \compact('start', 'end', 'name');
+                [$start, $end, $name] = [\hexdec($matches[1]), \hexdec($matches[2]), \mb_trim($matches[3], encoding: 'UTF-8')];
+                $blocks[] = ['start' => $start, 'end' => $end, 'name' => $name];
             }
         }
+
         self::$unicode_blocks = $blocks;
 
         return $blocks;
@@ -311,7 +314,7 @@ final class Unicode
                     \IntlChar::CHAR_CATEGORY_COMBINING_SPACING_MARK,
                     \IntlChar::CHAR_CATEGORY_NON_SPACING_MARK,
                 ],
-                true,
+                strict: true,
             )
             || self::isRTL($codepoint)
             || self::isNonSpacing($codepoint)

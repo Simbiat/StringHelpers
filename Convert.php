@@ -10,9 +10,14 @@ namespace Simbiat\StringHelpers;
 final class Convert
 {
     public static ?string $map = null;
+
     private static string $url_unsafe = '\+\*\'\(\);/\?:@=&"<>#%{}\|\\\\\^~\[]`';
+
     private static array $romanizations = [];
 
+    /**
+     * @var array<string, string>
+     */
     private static array $safe_for_files = [
         '/"/iu' => '＂',
         '/:/iu' => '：',
@@ -149,7 +154,7 @@ final class Convert
         '/=/iu' => '＝',
         '/\!/iu' => '！',
         '/\$/iu' => '＄',
-        '/\'/iu' => '＇',
+        "/'/iu" => '＇',
         '/\(/iu' => '（',
         '/\)/iu' => '）',
         '/\+/iu' => '＋',
@@ -207,7 +212,7 @@ final class Convert
         }
 
         // Remove spaces and dots from the right (spaces on the left are possible
-        return \mb_rtrim(\mb_rtrim(\mb_rtrim($string, null, 'UTF-8'), '.', 'UTF-8'), null, 'UTF-8');
+        return \mb_rtrim(\mb_rtrim(\mb_rtrim($string, encoding: 'UTF-8'), '.', 'UTF-8'), encoding: 'UTF-8');
     }
 
     /**
@@ -237,10 +242,10 @@ final class Convert
         // If no replacement list is provided, load the default one, but only if it has not been loaded already
         if (\count(self::$romanizations) === 0) {
             $map = self::$map ?? __DIR__.'/map.json';
-            $replacements = \array_merge(...\array_values(\json_decode(\file_get_contents($map), true, 512, \JSON_THROW_ON_ERROR)));
+            $replacements = \array_merge(...\array_values(\json_decode(\file_get_contents($map), associative: true, depth: 512, flags: \JSON_THROW_ON_ERROR)));
             $keys = \array_keys($replacements);
             // Wrap the keys in regex delimiters with the Unicode flag
-            $keys = \array_map(static fn($item) => '/'.$item.'/u', $keys);
+            $keys = \array_map(static fn(int|string $item): string => '/'.$item.'/u', $keys);
             self::$romanizations = \array_combine($keys, $replacements);
         }
     }

@@ -36,6 +36,7 @@ final class Generate
                     $variation .= \mb_strtolower($character, 'UTF-8');
                 }
             }
+
             // Add the generated combination to the array
             $variations[] = $variation;
         }

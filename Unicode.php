@@ -85,6 +85,44 @@ final class Unicode
     public private(set) static array $unicode_blocks = [];
 
     /**
+     * Wrapper for `\IntlChar::charDirection` to return a direction as a string, instead of integer.
+     *
+     * @param int|string $codepoint
+     *
+     * @return string
+     *
+     * @throws \RuntimeException
+     */
+    public static function charDirection(int|string $codepoint): string
+    {
+        $result = \array_search(\IntlChar::charDirection($codepoint), self::DIRECTIONS, strict: true);
+        if (!\is_string($result)) {
+            throw new \RuntimeException('Failed to find the direction type');
+        }
+
+        return $result;
+    }
+
+    /**
+     * Wrapper for `\IntlChar::charType` to return a type as a string, instead of integer.
+     *
+     * @param int|string $codepoint
+     *
+     * @return string
+     *
+     * @throws \RuntimeException
+     */
+    public static function charType(int|string $codepoint): string
+    {
+        $result = \array_search(\IntlChar::charType($codepoint), self::TYPES, strict: true);
+        if (!\is_string($result)) {
+            throw new \RuntimeException('Failed to find the character type');
+        }
+
+        return $result;
+    }
+
+    /**
      * Get all Unicode characters in an array.
      *
      * @return array
@@ -113,63 +151,104 @@ final class Unicode
     }
 
     /**
-     * Generates 2 files: one with a list of all transliterations, one with all characters that are not transliterated by the library. This is mostly for testing and maintenance.
+     * Get the block name from codepoint.
      *
-     * @return void
+     * @param int $codepoint
      *
-     * @throws \JsonException
+     * @return string|null
      */
-    public static function whatIsTransliterated(): void
+    public static function getBlockNameForCodepoint(int $codepoint): ?string
     {
-        $characters = self::getAllUnicode();
-        $not_transliterated = [];
-        $transliterated = [];
-        // Since transliteration is done per character, it can take quite awhile to finish processing
-        \ini_set('max_execution_time', '0');
-        foreach ($characters as $character) {
-            $character = (string) $character;
-            $codepoint = \IntlChar::ord($character);
-            $block_name = self::getBlockNameForCodepoint($codepoint) ?? 'Unknown';
-            $char_name = \IntlChar::charName($codepoint);
-            $hex = \mb_strtoupper(\dechex($codepoint), 'UTF-8');
-            $for_regex = '\x{'.$hex.'}';
-            $replacement = Convert::romanize($character);
+        $blocks = \count(self::$unicode_blocks) === 0
+            ? self::getUnicodeBlocks()
+            : self::$unicode_blocks;
+        foreach ($blocks as $block) {
             if (
-                $character === $replacement
-                && \preg_match('/^[a-zA-Z0-9]*$/', $replacement) !== 1
+                $codepoint >= $block['start']
+                && $codepoint <= $block['end']
             ) {
-                $not_transliterated[$block_name][(self::hexRecommended($character) ? $for_regex : $character)] = $char_name;
-            } else {
-                $transliterated[$block_name][(self::hexRecommended($character) ? $for_regex : $character)] = $char_name.' (`'.$replacement.'`)';
+                return $block['name'];
             }
         }
 
-        \file_put_contents(__DIR__.'/not_transliterated.json', \json_encode($not_transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
-        \file_put_contents(__DIR__.'/transliterated.json', \json_encode($transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
+        return null;
     }
 
     /**
-     * Wrapper for `\IntlChar::charDirection` to return a direction as a string, instead of integer.
+     * Get the latest list of blocks from Unicode.org in an array.
      *
-     * @param int|string $codepoint
-     *
-     * @return string
+     * @return array
      */
-    public static function charDirection(int|string $codepoint): string
+    public static function getUnicodeBlocks(): array
     {
-        return \array_search(\IntlChar::charDirection($codepoint), self::DIRECTIONS, strict: true);
+        $block_file = \file_get_contents('https://www.unicode.org/Public/UCD/latest/ucd/Blocks.txt');
+        $blocks = [];
+        foreach (\explode("\n", $block_file) as $line) {
+            if (\preg_match('/^([0-9A-F]+)\.\.([0-9A-F]+);\s(.+)$/', $line, $matches)) {
+                [$start, $end, $name] = [\hexdec($matches[1]), \hexdec($matches[2]), \mb_trim($matches[3], encoding: 'UTF-8')];
+                $blocks[] = ['start' => $start, 'end' => $end, 'name' => $name];
+            }
+        }
+
+        self::$unicode_blocks = $blocks;
+
+        return $blocks;
     }
 
     /**
-     * Wrapper for `\IntlChar::charType` to return a type as a string, instead of integer.
+     * Checks if provided codepoint or character is a direction "isolate".
      *
      * @param int|string $codepoint
      *
-     * @return string
+     * @return bool
      */
-    public static function charType(int|string $codepoint): string
+    public static function isIsolate(int|string $codepoint): bool
     {
-        return \array_search(\IntlChar::charType($codepoint), self::TYPES, strict: true);
+        // Get the direction of the character
+        $direction = \IntlChar::charDirection($codepoint);
+
+        // Check if the direction is RTL
+        return \in_array($direction, [
+            \IntlChar::CHAR_DIRECTION_FIRST_STRONG_ISOLATE,
+            \IntlChar::CHAR_DIRECTION_LEFT_TO_RIGHT_ISOLATE,
+            \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT_ISOLATE,
+            \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
+        ], strict: true);
+    }
+
+    /**
+     * Checks if provided codepoint or character is a non-spacing mark.
+     *
+     * @param int|string $codepoint
+     *
+     * @return bool
+     */
+    public static function isNonSpacing(int|string $codepoint): bool
+    {
+        // Get the direction of the character
+        $direction = \IntlChar::charDirection($codepoint);
+
+        // Check if the direction is RTL
+        return $direction === \IntlChar::CHAR_DIRECTION_DIR_NON_SPACING_MARK;
+    }
+
+    /**
+     * Checks if provided codepoint or character is a direction mark.
+     *
+     * @param int|string $codepoint
+     *
+     * @return bool
+     */
+    public static function isPop(int|string $codepoint): bool
+    {
+        // Get the direction of the character
+        $direction = \IntlChar::charDirection($codepoint);
+
+        // Check if the direction is RTL
+        return \in_array($direction, [
+            \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_FORMAT,
+            \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
+        ], strict: true);
     }
 
     /**
@@ -196,104 +275,39 @@ final class Unicode
     }
 
     /**
-     * Checks if provided codepoint or character is a non-spacing mark.
+     * Generates 2 files: one with a list of all transliterations, one with all characters that are not transliterated by the library. This is mostly for testing and maintenance.
      *
-     * @param int|string $codepoint
+     * @return void
      *
-     * @return bool
+     * @throws \JsonException
      */
-    public static function isNonSpacing(int|string $codepoint): bool
+    public static function whatIsTransliterated(): void
     {
-        // Get the direction of the character
-        $direction = \IntlChar::charDirection($codepoint);
-
-        // Check if the direction is RTL
-        return $direction === \IntlChar::CHAR_DIRECTION_DIR_NON_SPACING_MARK;
-    }
-
-    /**
-     * Checks if provided codepoint or character is a direction "isolate".
-     *
-     * @param int|string $codepoint
-     *
-     * @return bool
-     */
-    public static function isIsolate(int|string $codepoint): bool
-    {
-        // Get the direction of the character
-        $direction = \IntlChar::charDirection($codepoint);
-
-        // Check if the direction is RTL
-        return \in_array($direction, [
-            \IntlChar::CHAR_DIRECTION_FIRST_STRONG_ISOLATE,
-            \IntlChar::CHAR_DIRECTION_LEFT_TO_RIGHT_ISOLATE,
-            \IntlChar::CHAR_DIRECTION_RIGHT_TO_LEFT_ISOLATE,
-            \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
-        ], strict: true);
-    }
-
-    /**
-     * Checks if provided codepoint or character is a direction mark.
-     *
-     * @param int|string $codepoint
-     *
-     * @return bool
-     */
-    public static function isPop(int|string $codepoint): bool
-    {
-        // Get the direction of the character
-        $direction = \IntlChar::charDirection($codepoint);
-
-        // Check if the direction is RTL
-        return \in_array($direction, [
-            \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_FORMAT,
-            \IntlChar::CHAR_DIRECTION_POP_DIRECTIONAL_ISOLATE,
-        ], strict: true);
-    }
-
-    /**
-     * Get the latest list of blocks from Unicode.org in an array.
-     *
-     * @return array
-     */
-    public static function getUnicodeBlocks(): array
-    {
-        $block_file = \file_get_contents('https://www.unicode.org/Public/UCD/latest/ucd/Blocks.txt');
-        $blocks = [];
-        foreach (\explode("\n", $block_file) as $line) {
-            if (\preg_match('/^([0-9A-F]+)\.\.([0-9A-F]+);\s(.+)$/', $line, $matches)) {
-                [$start, $end, $name] = [\hexdec($matches[1]), \hexdec($matches[2]), \mb_trim($matches[3], encoding: 'UTF-8')];
-                $blocks[] = ['start' => $start, 'end' => $end, 'name' => $name];
-            }
-        }
-
-        self::$unicode_blocks = $blocks;
-
-        return $blocks;
-    }
-
-    /**
-     * Get the block name from codepoint.
-     *
-     * @param int $codepoint
-     *
-     * @return null|string
-     */
-    public static function getBlockNameForCodepoint(int $codepoint): ?string
-    {
-        $blocks = \count(self::$unicode_blocks) === 0
-            ? self::getUnicodeBlocks()
-            : self::$unicode_blocks;
-        foreach ($blocks as $block) {
+        $characters = self::getAllUnicode();
+        $not_transliterated = [];
+        $transliterated = [];
+        // Since transliteration is done per character, it can take quite awhile to finish processing
+        \ini_set('max_execution_time', '0');
+        foreach ($characters as $character) {
+            $character = (string) $character;
+            $codepoint = \IntlChar::ord($character);
+            $block_name = self::getBlockNameForCodepoint($codepoint) ?? 'Unknown';
+            $char_name = \IntlChar::charName($codepoint);
+            $hex = \mb_strtoupper(\dechex($codepoint), 'UTF-8');
+            $for_regex = '\x{'.$hex.'}';
+            $replacement = Convert::romanize($character);
             if (
-                $codepoint >= $block['start']
-                && $codepoint <= $block['end']
+                $character === $replacement
+                && \preg_match('/^[a-zA-Z0-9]*$/', $replacement) !== 1
             ) {
-                return $block['name'];
+                $not_transliterated[$block_name][self::hexRecommended($character) ? $for_regex : $character] = $char_name;
+            } else {
+                $transliterated[$block_name][self::hexRecommended($character) ? $for_regex : $character] = $char_name.' (`'.$replacement.'`)';
             }
         }
 
-        return null;
+        \file_put_contents(__DIR__.'/not_transliterated.json', \json_encode($not_transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
+        \file_put_contents(__DIR__.'/transliterated.json', \json_encode($transliterated, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT));
     }
 
     /**

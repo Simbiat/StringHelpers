@@ -11,8 +11,6 @@ final class Convert
 {
     public static ?string $map = null;
 
-    private static string $url_unsafe = '\+\*\'\(\);/\?:@=&"<>#%{}\|\\\\\^~\[]`';
-
     private static array $romanizations = [];
 
     /**
@@ -138,7 +136,6 @@ final class Convert
         '/^OsDATA$/u' => 'ＯｓＤＡＴＡ',
         '/^oSDATA$/u' => 'ｏＳＤＡＴＡ',
         '/^OSDATA$/u' => 'ＯＳＤＡＴＡ',
-
     ];
 
     /** Some more characters that you might want to replace with fullwidth alternatives, depending on how you use the files.
@@ -146,6 +143,7 @@ final class Convert
      * @var array<string, string>
      */
     private static array $safe_for_files_ext = [
+        "/'/iu" => '＇',
         '/#/iu' => '＃',
         '/%/iu' => '％',
         '/&/iu' => '＆',
@@ -154,7 +152,6 @@ final class Convert
         '/=/iu' => '＝',
         '/\!/iu' => '！',
         '/\$/iu' => '＄',
-        "/'/iu" => '＇',
         '/\(/iu' => '（',
         '/\)/iu' => '）',
         '/\+/iu' => '＋',
@@ -172,6 +169,8 @@ final class Convert
         '/”/iu' => '＂',
     ];
 
+    private static string $url_unsafe = '\+\*\'\(\);/\?:@=&"<>#%{}\|\\\\\^~\[]`';
+
     /**
      * Function transliterates lots of characters and makes a safe and pretty URL.
      *
@@ -182,16 +181,48 @@ final class Convert
      * @return string
      *
      * @throws \JsonException
+     * @throws \RuntimeException
      */
     public static function prettyURL(string $string, string $whitespace = '-', bool $url_safe = true): string
     {
         $new_string = self::romanize($string);
         // Repalce whitespace
         $new_string = \preg_replace('/\s+/', $whitespace, $new_string);
+
         // Remove any other "forbidden" characters
-        return $url_safe
+        $new_string = $url_safe
             ? \preg_replace('[^a-zA-Z\d'.$whitespace.']', '', $new_string)
             : \preg_replace('[^a-zA-Z\d'.self::$url_unsafe.$whitespace.']', '', $new_string);
+        if ($new_string === null) {
+            throw new \RuntimeException('Failed to preg_replace');
+        }
+
+        return $new_string;
+    }
+
+    /**
+     * Apply romanization logic to a string.
+     *
+     * @param string $string
+     *
+     * @return string
+     *
+     * @throws \JsonException
+     * @throws \RuntimeException
+     */
+    public static function romanize(string $string): string
+    {
+        self::ingestMap();
+        // First, we apply built-in transliteration
+        $replacement = \transliterator_transliterate('Any-Latin; Latin-ASCII;', $string, 0, -1);
+
+        // Then we apply transliterations from the map
+        $result = \preg_replace(\array_keys(self::$romanizations), self::$romanizations, $replacement);
+        if ($result === null) {
+            throw new \RuntimeException('Failed to preg_replace');
+        }
+
+        return $result;
     }
 
     /**
@@ -206,28 +237,13 @@ final class Convert
     public static function safeFileName(string $string, bool $extended = true, bool $remove = false): string
     {
         // Replace special characters
-        $string = \preg_replace(\array_keys(self::$safe_for_files), ($remove ? '' : self::$safe_for_files), $string);
+        $string = \preg_replace(\array_keys(self::$safe_for_files), $remove ? '' : self::$safe_for_files, $string);
         if ($extended) {
-            $string = \preg_replace(\array_keys(self::$safe_for_files_ext), ($remove ? '' : self::$safe_for_files_ext), $string);
+            $string = \preg_replace(\array_keys(self::$safe_for_files_ext), $remove ? '' : self::$safe_for_files_ext, $string);
         }
 
         // Remove spaces and dots from the right (spaces on the left are possible
         return \mb_rtrim(\mb_rtrim(\mb_rtrim($string, encoding: 'UTF-8'), '.', 'UTF-8'), encoding: 'UTF-8');
-    }
-
-    /**
-     * Apply romanization logic to a string.
-     *
-     * @throws \JsonException
-     */
-    public static function romanize(string $string): string
-    {
-        self::ingestMap();
-        // First, we apply built-in transliteration
-        $replacement = \transliterator_transliterate('Any-Latin; Latin-ASCII;', $string, 0, -1);
-
-        // Then we apply transliterations from the map
-        return \preg_replace(\array_keys(self::$romanizations), self::$romanizations, $replacement);
     }
 
     /**

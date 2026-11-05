@@ -15,6 +15,8 @@ final class Decode
      * @param string $string
      *
      * @return string
+     *
+     * @throws \RuntimeException
      */
     public static function base64url(string $string): string
     {
@@ -22,6 +24,11 @@ final class Decode
         $string = \strtr($string, '-_', '+/');
 
         // Decode Base64 string and return the original data
-        return \base64_decode($string, strict: true);
+        $result = \base64_decode($string, strict: true);
+        if ($result === false) {
+            throw new \RuntimeException('Failed to decode base64 string');
+        }
+
+        return $result;
     }
 }
